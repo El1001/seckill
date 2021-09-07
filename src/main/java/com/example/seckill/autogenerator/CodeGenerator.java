@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.InjectionConfig;
 import com.baomidou.mybatisplus.generator.config.*;
+import com.baomidou.mybatisplus.generator.config.builder.ConfigBuilder;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
+import com.baomidou.mybatisplus.generator.config.rules.FileType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
@@ -27,10 +30,11 @@ public class CodeGenerator {
     public static String scanner(String tip) {
         Scanner scanner = new Scanner(System.in);
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("scanf in :" + tip);
+        stringBuilder.append("请输入" + tip + "：");
+        System.out.println(stringBuilder);
         if (scanner.hasNext()) {
             String ipt = scanner.next();
-            if (StringUtils.isBlank(ipt)) {
+            if (StringUtils.isNotBlank(ipt)) {
                 return ipt;
             }
         }
@@ -43,7 +47,7 @@ public class CodeGenerator {
         // 全局配置
         GlobalConfig globalConfig = new GlobalConfig();
         String propertiesPath = System.getProperty("user.dir");
-        globalConfig.setOutputDir(propertiesPath:"/src/main/java");
+        globalConfig.setOutputDir(propertiesPath + "/src/main/java");
         globalConfig.setAuthor("ZEL");
         globalConfig.setOpen(false);
         globalConfig.setBaseResultMap(true);
@@ -84,15 +88,34 @@ public class CodeGenerator {
 
         // 输出配置
         ArrayList<FileOutConfig> fileOutConfigs = new ArrayList<>();
-        fileOutConfigs.add(new FileOutConfig() {
+        fileOutConfigs.add(new FileOutConfig(templatePath) {
             @Override
             public String outputFile(TableInfo tableInfo) {
+                // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
                 return propertiesPath + "/src/main/resources/mapper/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
+            }
+        });
+        injectionConfig.setFileCreate(new IFileCreate() {
+            @Override
+            public boolean isCreate(ConfigBuilder configBuilder, FileType fileType, String filePath) {
+                // 判断自定义文件夹是否需要创建
+                // t_goods,t_seckill_order,t_seckill_goods,t_order,t_usercheckDir("调用默认方法创建的目录，自定义目录用");
+                /*if (fileType == FileType.MAPPER) {
+                    // 已经生成 mapper 文件判断存在，不想重新生成返回 false
+                    return !new File(filePath).exists();
+                }*/
+                // 允许生成模板文件
+                return true;
             }
         });
 
         injectionConfig.setFileOutConfigList(fileOutConfigs);
         mpg.setCfg(injectionConfig);
+/*
+        injectionConfig.setFileOutConfigList(fileOutConfigs);
+        mpg.setCfg(injectionConfig);
+*/
+
 
         // 配置模板
         TemplateConfig templateConfig = new TemplateConfig()
