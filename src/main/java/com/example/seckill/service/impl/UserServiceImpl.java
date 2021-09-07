@@ -41,13 +41,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public RespBean login(HttpServletRequest request, HttpServletResponse response, LoginVo loginVo) {
         String mobile = loginVo.getMobile();
         String password = loginVo.getPassword();
-        // //参数校验
-        // if (StringUtils.isEmpty(mobile)||StringUtils.isEmpty(password)){
-        // 	return RespBean.error(RespBeanEnum.LOGIN_ERROR);
-        // }
-        // if (!ValidatorUtil.isMobile(mobile)){
-        // 	return RespBean.error(RespBeanEnum.MOBILE_ERROR);
-        // }
+
         //根据手机号获取用户
         User user = userMapper.selectById(mobile);
         if (null == user) {
@@ -59,6 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         //生成cookie
         String ticket = UUIDUtil.uuid();
+        request.getSession().setAttribute(ticket,user);
         CookieUtil.setCookie(request, response, "userTicket", ticket);
         return RespBean.success(ticket);
     }
