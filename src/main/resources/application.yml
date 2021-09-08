@@ -9,6 +9,24 @@ spring:
     url: jdbc:mysql://localhost:3306/seckill?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
+
+  redis:
+    timeout: 10000ms
+    host: 127.0.0.1
+    port: 6739
+    database: 0
+#    password: root
+    lettuce:
+      pool:
+#        最大连接数
+        max-active: 8
+        #最大连接阻塞等待时间
+        max-wait: 10000ms
+        #最大空闲连接
+        max-idle: 200
+        #最小空闲连接
+        min-idle: 4
+
 hikari:
   # 连接池名
   pool-name: DateHikariCP
