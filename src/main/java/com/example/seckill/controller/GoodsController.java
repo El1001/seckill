@@ -2,6 +2,7 @@ package com.example.seckill.controller;
 
 
 import com.example.seckill.pojo.User;
+import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
@@ -28,7 +29,8 @@ import javax.servlet.http.HttpSession;
 public class GoodsController {
     @Autowired
     IUserService userService;
-
+@Autowired
+    IGoodsService goodsService;
     @RequestMapping("/toList")
     public String toLogin(Model model, User user) {
 //        这里 使用userArgumentResolver 来 优化登录问题
@@ -40,6 +42,7 @@ public class GoodsController {
 //            return "login";
 //        }
         model.addAttribute("user", user);
+        model.addAttribute("goodsList",goodsService.findGoodsVo());
         return "goodsList";
     }
 }
