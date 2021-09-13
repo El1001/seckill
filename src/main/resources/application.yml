@@ -13,12 +13,12 @@ spring:
   redis:
     timeout: 10000ms
     host: 127.0.0.1
-    port: 6739
+    port: 6379
     database: 0
-#    password: root
+    #    password: root
     lettuce:
       pool:
-#        最大连接数
+        #        最大连接数
         max-active: 8
         #最大连接阻塞等待时间
         max-wait: 10000ms
@@ -53,4 +53,4 @@ mybatis-plus:
 ## Mybatis SQL 打印(方法接口所在的包，不是Mapper.xml所在的包)
 logging:
   level:
-    com.xxxx.seckill.mapper: debug
+    com.example.seckill.mapper: debug

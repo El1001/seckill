@@ -1,14 +1,14 @@
 package com.example.seckill.mapper;
 
-import com.example.seckill.pojo.Goods;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.example.seckill.pojo.Goods;
 import com.example.seckill.vo.GoodsVo;
 
 import java.util.List;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author ZEL
@@ -17,7 +17,16 @@ import java.util.List;
 public interface GoodsMapper extends BaseMapper<Goods> {
     /**
      * 获得商品列表
+     *
      * @return
      */
     List<GoodsVo> getGoodsVo();
+
+    /**
+     * 根据Id获得商品详情
+     *
+     * @param goodsId
+     * @return
+     */
+    GoodsVo findGoodsVoById(Long goodsId);
 }

@@ -1,10 +1,10 @@
 package com.example.seckill.service.impl;
 
-import com.example.seckill.exception.GlobalException;
-import com.example.seckill.pojo.User;
-import com.example.seckill.mapper.UserMapper;
-import com.example.seckill.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.seckill.exception.GlobalException;
+import com.example.seckill.mapper.UserMapper;
+import com.example.seckill.pojo.User;
+import com.example.seckill.service.IUserService;
 import com.example.seckill.util.CookieUtil;
 import com.example.seckill.util.JsonUtil;
 import com.example.seckill.util.MD5Util;
@@ -72,8 +72,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         String userjson = (String) redisTemplate.opsForValue().get("user:" + userTicket);
         User user = JsonUtil.jsonStr2Object(userjson, User.class);
-        if(null != user) {
-            CookieUtil.setCookie(request,response,"userTicket",userTicket);
+        if (null != user) {
+            CookieUtil.setCookie(request, response, "userTicket", userTicket);
         }
         return user;
     }

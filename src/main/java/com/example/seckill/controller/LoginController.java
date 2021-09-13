@@ -28,17 +28,17 @@ public class LoginController {
 
     /**
      * 登录跳转页
+     *
      * @return 跳转到登录
      */
     @RequestMapping("/toLogin")
-    public String toLogin(){
+    public String toLogin() {
         return "login";
     }
 
     @RequestMapping("/doLogin")
     @ResponseBody
     public RespBean doLogin(HttpServletRequest request, HttpServletResponse response, @Valid LoginVo loginVo) {
-        log.info(loginVo.toString());
-        return userService.login(request,response,loginVo);
+        return userService.login(request, response, loginVo);
     }
 }
