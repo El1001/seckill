@@ -6,15 +6,24 @@ import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IUserService;
 import com.example.seckill.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -32,8 +41,21 @@ public class GoodsController {
     @Autowired
     IGoodsService goodsService;
 
-    @RequestMapping("/toList")
-    public String toLogin(Model model, User user) {
+    @Autowired
+    private ThymeleafViewResolver thymeleafViewResolver;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    /**
+     * 商品列表
+     *
+     * @param model
+     * @param user
+     * @return
+     */
+    @RequestMapping(value = "/toList", produces = "text/html;charset=utf-8")
+    @ResponseBody
+    public String toLogin(HttpServletRequest request, HttpServletResponse response, Model model, User user) {
 //        这里 使用userArgumentResolver 来 优化登录问题
 //        if (StringUtils.isEmpty(ticket)) {
 //            return "login";
@@ -42,13 +64,38 @@ public class GoodsController {
 //        if (null == user) {
 //            return "login";
 //        }
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        //  从redis 中获得页面
+        String html = String.valueOf(valueOperations.get("goodsList"));
+
+        if (!StringUtils.isEmpty(html)) {
+            return html;
+        }
         model.addAttribute("user", user);
         model.addAttribute("goodsList", goodsService.findGoodsVo());
-        return "goodsList";
+
+        // return "goodsList";
+        // 为空则渲染 存入 redis 并返回
+
+        WebContext webContext = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goodList", webContext);
+        if (StringUtils.isEmpty(html)) {
+            valueOperations.set("goodsList", html, 60, TimeUnit.SECONDS);
+        }
+        return html;
     }
 
-    @GetMapping("/toDetail/{goodsId}")
-    public String toDetail(Model model, User user, @PathVariable Long goodsId) {
+    @GetMapping(value = "/toDetail/{goodsId}", produces = "text/html;charset=utf-8")
+    @ResponseBody
+    public String toDetail(HttpServletRequest request, HttpServletResponse response,
+                           Model model, User user, @PathVariable Long goodsId) {
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        String html = String.valueOf(valueOperations.get("goodsDetail:" + goodsId));
+        if (StringUtils.isEmpty(html)) {
+            return html;
+        }
+
+
         model.addAttribute("user", user);
         GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
         model.addAttribute("goods", goodsVo);
@@ -80,8 +127,15 @@ public class GoodsController {
         }
         model.addAttribute("secKillStatus", seckillStatus);
         model.addAttribute("remainSeconds", remainSeconds);
-        // 秒杀中
-        return "goodsDetail";
+
+        // return "goodsDetail";
+        WebContext context = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goodsDetail", context);
+        if (!StringUtils.isEmpty(html)) {
+            valueOperations.set("goodsDetail:" + goodsId, html, 60, TimeUnit.SECONDS);
+        }
+        return html;
+
     }
 
 
