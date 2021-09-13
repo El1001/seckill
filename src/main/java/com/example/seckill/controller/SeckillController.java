@@ -12,7 +12,6 @@ import com.example.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -31,7 +30,7 @@ public class SeckillController {
     @Autowired
     private IOrderService orderService;
 
-    @PostMapping("/doSeckill")
+    @RequestMapping("/doSeckill")
     public String doSeckill(Model model, User user, Long goodsId) {
         if (null == user) {
             return "login";

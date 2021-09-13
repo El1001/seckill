@@ -54,11 +54,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new GlobalException(RespBeanEnum.LOGIN_ERROR);
         }
         //判断密码是否正确
-        if (!MD5Util.formPassToDBPass(password, user.getSlat()).equals(user.getPassword())) {
+        if (!MD5Util.formPassToDBPass(password, user.getSalt()).equals(user.getPassword())) {
             throw new GlobalException(RespBeanEnum.LOGIN_ERROR);
         }
         //生成cookie
         String ticket = UUIDUtil.uuid();
+        System.out.println(ticket);
         redisTemplate.opsForValue().set("user:" + ticket, JsonUtil.object2JsonStr(user));
         // request.getSession().setAttribute(ticket,user);
         CookieUtil.setCookie(request, response, "userTicket", ticket);

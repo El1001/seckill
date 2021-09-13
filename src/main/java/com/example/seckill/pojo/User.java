@@ -1,14 +1,15 @@
 package com.example.seckill.pojo;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.util.Date;
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author ZEL
@@ -39,7 +40,7 @@ public class User implements Serializable {
     /**
      * 盐
      */
-    private String slat;
+    private String salt;
 
     /**
      * 头像

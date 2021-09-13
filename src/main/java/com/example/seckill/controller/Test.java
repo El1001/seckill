@@ -37,12 +37,12 @@ public class Test {
     public RespBean regular(User userInput) {
 
         User user = new User();
-        Long tel = new Long(Long.valueOf("13911111110"));
+        Long tel = new Long(Long.valueOf("18811111111"));
         user.setId(tel);
-        user.setSlat("1a2b3c4d");
+        user.setSalt("1a2b3c4d");
         user.setNickname("王二");
-        String inputpassword = "123123";
-        String password = MD5Util.inputPassToDBPass(inputpassword, user.getSlat());
+        String inputpassword = "123456";
+        String password = MD5Util.inputPassToDBPass(inputpassword, user.getSalt());
         user.setPassword(password);
         userService.save(user);
         System.out.println(user);
