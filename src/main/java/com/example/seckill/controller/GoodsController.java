@@ -66,7 +66,7 @@ public class GoodsController {
 //        }
         ValueOperations valueOperations = redisTemplate.opsForValue();
         //  从redis 中获得页面
-        String html = String.valueOf(valueOperations.get("goodsList"));
+        String html = (String) valueOperations.get("goodsList"); // 不能用string。value of emm
 
         if (!StringUtils.isEmpty(html)) {
             return html;
@@ -78,8 +78,8 @@ public class GoodsController {
         // 为空则渲染 存入 redis 并返回
 
         WebContext webContext = new WebContext(request, response, request.getServletContext(), request.getLocale(), model.asMap());
-        html = thymeleafViewResolver.getTemplateEngine().process("goodList", webContext);
-        if (StringUtils.isEmpty(html)) {
+        html = thymeleafViewResolver.getTemplateEngine().process("goodsList", webContext);
+        if (!StringUtils.isEmpty(html)) {
             valueOperations.set("goodsList", html, 60, TimeUnit.SECONDS);
         }
         return html;
@@ -90,8 +90,8 @@ public class GoodsController {
     public String toDetail(HttpServletRequest request, HttpServletResponse response,
                            Model model, User user, @PathVariable Long goodsId) {
         ValueOperations valueOperations = redisTemplate.opsForValue();
-        String html = String.valueOf(valueOperations.get("goodsDetail:" + goodsId));
-        if (StringUtils.isEmpty(html)) {
+        String html = (String) valueOperations.get("goodsDetail:" + goodsId); // 不能用string。value of emm
+        if (!StringUtils.isEmpty(html)) {
             return html;
         }
 
