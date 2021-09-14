@@ -9,7 +9,9 @@ import com.example.seckill.vo.GoodsVo;
 import com.example.seckill.vo.RespBean;
 import com.example.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,12 +26,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/seckill")
 public class SeckillController {
     @Autowired
+    RedisTemplate redisTemplate;
+    @Autowired
     private IGoodsService goodsService;
     @Autowired
     private ISeckillOrderService seckillOrderService;
     @Autowired
     private IOrderService orderService;
-
     /* 9.14-14.33 修改 静态化
     @RequestMapping("/doSeckill")
     public String doSeckill(Model model, User user, Long goodsId) {
@@ -67,12 +70,21 @@ public class SeckillController {
         if (goodsVo.getStockCount() < 1) {
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
-//        // 判断是否重复抢购
-//        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
-//        if (seckillOrder != null) {
-//            return RespBean.error(RespBeanEnum.REPEATE_ERROR);
-//        }
+       /* // 判断是否重复抢购
+        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
+        if (seckillOrder != null) {
+            return RespBean.error(RespBeanEnum.REPEATE_ERROR);
+        }*/
+        // 同一用户同时抢购 解决
+        String seckillOrderJson = (String) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
+        if (!StringUtils.isEmpty(seckillOrderJson)) {
+            return RespBean.error(RespBeanEnum.REPEATE_ERROR);
+        }
+
         Order order = orderService.seckill(user, goodsVo);
+        if (order == null) {
+            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
         return RespBean.success(order);
     }
 
