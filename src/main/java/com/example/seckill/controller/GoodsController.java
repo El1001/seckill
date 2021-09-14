@@ -4,7 +4,9 @@ package com.example.seckill.controller;
 import com.example.seckill.pojo.User;
 import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IUserService;
+import com.example.seckill.vo.DetailVo;
 import com.example.seckill.vo.GoodsVo;
+import com.example.seckill.vo.RespBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -49,13 +51,15 @@ public class GoodsController {
     /**
      * 商品列表
      *
+     * @param request
+     * @param response
      * @param model
      * @param user
      * @return
      */
     @RequestMapping(value = "/toList", produces = "text/html;charset=utf-8")
     @ResponseBody
-    public String toLogin(HttpServletRequest request, HttpServletResponse response, Model model, User user) {
+    public String toList(HttpServletRequest request, HttpServletResponse response, Model model, User user) {
 //        这里 使用userArgumentResolver 来 优化登录问题
 //        if (StringUtils.isEmpty(ticket)) {
 //            return "login";
@@ -85,11 +89,11 @@ public class GoodsController {
         return html;
     }
 
-    @GetMapping(value = "/toDetail/{goodsId}", produces = "text/html;charset=utf-8")
+    @GetMapping(value = "/toDetail/{goodsId}"/* 导致 无法 转化错误 原因 原先 使用手动渲染， 现在改成 本地, produces = "text/html;charset=utf-8"*/)
     @ResponseBody
-    public String toDetail(HttpServletRequest request, HttpServletResponse response,
-                           Model model, User user, @PathVariable Long goodsId) {
-        ValueOperations valueOperations = redisTemplate.opsForValue();
+    public RespBean toDetail(HttpServletRequest request, HttpServletResponse response,
+                             Model model, User user, @PathVariable Long goodsId) {
+        /*ValueOperations valueOperations = redisTemplate.opsForValue();
         String html = (String) valueOperations.get("goodsDetail:" + goodsId); // 不能用string。value of emm
         if (!StringUtils.isEmpty(html)) {
             return html;
@@ -99,6 +103,9 @@ public class GoodsController {
         model.addAttribute("user", user);
         GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
         model.addAttribute("goods", goodsVo);
+*/
+
+        GoodsVo goodsVo = goodsService.getGoodsVoById(goodsId);
 
         Date startDate = goodsVo.getStartDate();
         Date endDate = goodsVo.getEndDate();
@@ -125,6 +132,17 @@ public class GoodsController {
             seckillStatus = 1;
             remainSeconds = 0;
         }
+
+        DetailVo detailVo = new DetailVo();
+
+        detailVo.setGoodsVo(goodsVo);
+        detailVo.setUser(user);
+        detailVo.setRemainSeconds(remainSeconds);
+        detailVo.setSeckillStatus(seckillStatus);
+
+        return RespBean.success(detailVo);
+/*
+
         model.addAttribute("secKillStatus", seckillStatus);
         model.addAttribute("remainSeconds", remainSeconds);
 
@@ -135,6 +153,7 @@ public class GoodsController {
             valueOperations.set("goodsDetail:" + goodsId, html, 60, TimeUnit.SECONDS);
         }
         return html;
+*/
 
     }
 
