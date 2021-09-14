@@ -116,7 +116,7 @@ public class UserUtil {
 
     // 测试 初始化数据是否正常
     public static void main(String[] args) throws Exception {
-        createUser(5000);
+        createUser(500);
         /*int count = 10000;
         List<User> users = new ArrayList<>(count);
         // 生成用户

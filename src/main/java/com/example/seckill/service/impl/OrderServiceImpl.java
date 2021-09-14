@@ -61,42 +61,46 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
                         .eq("id", seckillGoods.getId())
                         .gt("stock_count", 0));
 
+        SeckillGoods seckillGoodsAgain = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
+
         if (!seckillGoodsResult) {
             return null;
-        }
-        /* 还是不行 emm// 解决超卖问题
+        } else {
+            /* 还是不行 emm// 解决超卖问题
         seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().set("stock_count",
                         seckillGoods.getStockCount())
                 .eq("id", seckillGoods.getId())
                 .gt("stock_count", 0));*/
 
-        // seckillGoodsService.updateById(seckillGoods);
-        // 生成订单信息
+            // seckillGoodsService.updateById(seckillGoods);
+            // 生成订单信息
 
-        Order order = new Order();
-        order.setUserId(user.getId());
-        order.setGoodsId(goods.getId());
-        // 地址Id
-        order.setDeliverAddrId(1);
-        order.setGoodsName(goods.getGoodsName());
-        order.setGoodsCount(1);
-        order.setGoodsPrice(seckillGoods.getSeckillPrice());
-        // 设备信息
-        order.setOrderChannel(1);
-        // 订单状态
-        order.setStatus(0);
-        order.setCreateDate(new Date());
-        orderMapper.insert(order);
-        // 生成秒杀订单
-        SeckillOrder seckillOrder = new SeckillOrder();
-        seckillOrder.setOrderId(order.getId());
-        seckillOrder.setUserId(user.getId());
-        seckillOrder.setGoodsId(goods.getId());
-        seckillOrderService.save(seckillOrder);
+            Order order = new Order();
+            order.setUserId(user.getId());
+            order.setGoodsId(goods.getId());
+            // 地址Id
+            order.setDeliverAddrId(1);
+            order.setGoodsName(goods.getGoodsName());
+            order.setGoodsCount(1);
+            order.setGoodsPrice(seckillGoods.getSeckillPrice());
+            // 设备信息
+            order.setOrderChannel(1);
+            // 订单状态
+            order.setStatus(0);
+            order.setCreateDate(new Date());
+            orderMapper.insert(order);
+            // 生成秒杀订单
+            SeckillOrder seckillOrder = new SeckillOrder();
+            seckillOrder.setOrderId(order.getId());
+            seckillOrder.setUserId(user.getId());
+            seckillOrder.setGoodsId(goods.getId());
+            seckillOrderService.save(seckillOrder);
 
-        redisTemplate.opsForValue().set("order:" + user.getId() + ":" +
-                goods.getId(), JsonUtil.object2JsonStr(seckillOrder));
-        return order;
+            redisTemplate.opsForValue().set("order:" + user.getId() + ":" +
+                    goods.getId(), JsonUtil.object2JsonStr(seckillOrder));
+            return order;
+        }
+
     }
 
     /**
