@@ -61,12 +61,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         // 减库存
         SeckillGoods seckillGoods = seckillGoodsService.getOne(new
                 QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
-        boolean seckillGoodsResult = seckillGoodsService.update(
-                new UpdateWrapper<SeckillGoods>()
-                        .setSql("stock_count = stock_count- 1")
-                        .eq("goods_id", goods.getId())
-                        .gt("stock_count", 0));
-        if (seckillGoods.getStockCount() < 1 || !seckillGoodsResult) {
+
+        if (seckillGoods.getStockCount() < 1) {
             //判断是否还有库存
             valueOperations.set("isStockEmpty:" + goods.getId(), "0");
             return null;
@@ -80,6 +76,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
             // seckillGoodsService.updateById(seckillGoods);
             // 生成订单信息
+            //  减库存操作
+            boolean seckillGoodsResult = seckillGoodsService.update(
+                    new UpdateWrapper<SeckillGoods>()
+                            .setSql("stock_count = stock_count- 1")
+                            .eq("goods_id", goods.getId())
+                            .gt("stock_count", 0));
 
             Order order = new Order();
             order.setUserId(user.getId());
