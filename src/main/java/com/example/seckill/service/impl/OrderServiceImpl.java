@@ -19,7 +19,9 @@ import com.example.seckill.vo.OrderDetailVo;
 import com.example.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -52,19 +54,23 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return
      */
     @Override
+    @Transactional
     public Order seckill(User user, GoodsVo goods) {
-        SeckillGoods seckillGoods = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
-        seckillGoods.setStockCount(seckillGoods.getStockCount() - 1);
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+
+        // 减库存
+        SeckillGoods seckillGoods = seckillGoodsService.getOne(new
+                QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
         boolean seckillGoodsResult = seckillGoodsService.update(
                 new UpdateWrapper<SeckillGoods>()
-                        .set("stock_count", seckillGoods.getStockCount())
-                        .eq("id", seckillGoods.getId())
+                        .setSql("stock_count = stock_count- 1")
+                        .eq("goods_id", goods.getId())
                         .gt("stock_count", 0));
-
-        SeckillGoods seckillGoodsAgain = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
-
-        if (!seckillGoodsResult) {
+        if (seckillGoods.getStockCount() < 1 || !seckillGoodsResult) {
+            //判断是否还有库存
+            valueOperations.set("isStockEmpty:" + goods.getId(), "0");
             return null;
+
         } else {
             /* 还是不行 emm// 解决超卖问题
         seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().set("stock_count",
@@ -96,8 +102,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             seckillOrder.setGoodsId(goods.getId());
             seckillOrderService.save(seckillOrder);
 
-            redisTemplate.opsForValue().set("order:" + user.getId() + ":" +
+           /* redisTemplate.opsForValue().set("order:" + user.getId() + ":" +
                     goods.getId(), JsonUtil.object2JsonStr(seckillOrder));
+            */
+            valueOperations.set("order:" + user.getId() + ":" + goods.getId(),
+                    JsonUtil.object2JsonStr(seckillOrder));
             return order;
         }
 
@@ -121,4 +130,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         detailVo.setGoodsVo(goodsVo);
         return detailVo;
     }
+
+
 }

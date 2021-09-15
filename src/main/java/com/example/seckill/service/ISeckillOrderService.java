@@ -1,11 +1,12 @@
 package com.example.seckill.service;
 
-import com.example.seckill.pojo.SeckillOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.seckill.pojo.SeckillOrder;
+import com.example.seckill.pojo.User;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author ZEL
@@ -13,4 +14,12 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ISeckillOrderService extends IService<SeckillOrder> {
 
+    /**
+     * 获得秒杀结果
+     *
+     * @param user
+     * @param goodsId
+     * @return
+     */
+    Long getResult(User user, Long goodsId);
 }
