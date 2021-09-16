@@ -18,9 +18,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -75,15 +73,20 @@ public class SeckillController implements InitializingBean {
     }
 */
 
-    @RequestMapping(value = "/doSeckill", method = RequestMethod.POST)
+    @RequestMapping(value = "/{path}/doSeckill", method = RequestMethod.POST)
     @ResponseBody
-    public RespBean doSeckill(User user, Long goodsId) {
+    public RespBean doSeckill(@PathVariable String path, User user, Long goodsId) {
         if (null == user) {
             return RespBean.error(RespBeanEnum.SESSION_ERROR);
         }
 
-        // redis 中获得 判断是否同一用户重复抢购
         ValueOperations valueOperations = redisTemplate.opsForValue();
+
+        boolean check = orderService.checkPath(user, goodsId, path);
+        if (!check) {
+            return RespBean.error(RespBeanEnum.REQUEST_ILLEGAL);
+        }
+        // redis 中获得 判断是否同一用户重复抢购
         String seckillOrderJson = (String) valueOperations.get(("order:" + user.getId() + ":" + goodsId));
         if (!StringUtils.isEmpty(seckillOrderJson)) {
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
@@ -95,11 +98,16 @@ public class SeckillController implements InitializingBean {
         }
         // 预减库存
         Long stock = (Long) redisTemplate.execute(script, Collections.singletonList("seckillGoods:" + goodsId), Collections.EMPTY_LIST);
-        if (stock < 0) {
+
+        if (stock <= 0) {
+            emptyStockMap.put(goodsId, true);
+            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
+        /*if (stock < 0) {
             emptyStockMap.put(goodsId, true);
             valueOperations.increment("seckillGoods:" + goodsId);
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
-        }
+        }*/
 
         // 请求入队
         SeckillMessage message = new SeckillMessage(user, goodsId);
@@ -165,4 +173,21 @@ public class SeckillController implements InitializingBean {
         return RespBean.success(orderId);
     }
 
+    /**
+     * 蝴蝶秒杀路径
+     *
+     * @param user
+     * @param goodsId
+     * @return
+     */
+    @GetMapping("/path")
+    @ResponseBody
+    public RespBean getPath(User user, Long goodsId) {
+        if (user == null) {
+            return RespBean.error(RespBeanEnum.SESSION_ERROR);
+        }
+        String str = orderService.createPath(user, goodsId);
+
+        return RespBean.success(str);
+    }
 }

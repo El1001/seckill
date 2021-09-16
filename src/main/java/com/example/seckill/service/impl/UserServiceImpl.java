@@ -66,6 +66,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return RespBean.success(ticket);
     }
 
+    /**
+     * 通过前置拦截器方法 获得 session 再获得 user
+     *
+     * @param userTicket
+     * @param request
+     * @param response
+     * @return
+     */
     @Override
     public User getByUserTicket(String userTicket, HttpServletRequest request, HttpServletResponse response) {
         if (StringUtils.isEmpty(userTicket)) {
